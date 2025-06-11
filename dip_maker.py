@@ -95,7 +95,7 @@ t_0 = 200000
 Npts = 2**19
 ts = np.linspace(0, 400000, Npts)
 dt = ts[1] - ts[0]
-taus = np.arange(-50, 50.5, 0.5)
+taus = np.arange(-100, 100.5, 0.5)
 
 if __name__ == "__main__":
     start = time.time()
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     Npts = 2**19
     ts = np.linspace(0, 400000, Npts)
     dt = ts[1] - ts[0]
-    taus = np.arange(-50, 50.5, 0.5)
+    taus = np.arange(-100, 100.5, 0.5)
     
 
     # Time-domain field
