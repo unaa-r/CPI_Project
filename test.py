@@ -14,8 +14,8 @@ import multiprocessing as mp
 def Ereffer(Ec, Ea, w, tau):
     return (Ec + Ea) * np.exp(1j * w * tau)
 
-def Esampler(Ec, Ea, w, w_0, epsilon):
-    return (Ec - Ea) * np.exp(1j * epsilon * ((w - w_0) ** 2))
+def Esampler(Ec, Ea, w, w_0, phi):
+    return (Ec - Ea) * np.exp(1j * phi)
 
 def CPI(Ec, Ea, ws, w_0, taus, epsilon, queue, label):
     print(f"[{label}] Starting CPI...")
@@ -34,10 +34,41 @@ def CPI(Ec, Ea, ws, w_0, taus, epsilon, queue, label):
     queue.put((label, SFG_data))
     print(f"[{label}] Finished CPI.")
 
+def BK7_epsilon(w, w0):
+    c = 0.2998; #(*um/fs*)
+    b1 = 1.03961212; #(*for BK7 glass*)
+    b2 = 0.231792344
+    b3 = 1.01046945
+    c1 = 6.00069867e-3 #(*um^2*)
+    c2 = 2.00179144e-2
+    c3 = 1.03560653e2
+
+    k_w = w*(np.sqrt(1 + (b1*(2*np.pi*c/w)**2)/((2*np.pi*c/w)**2 - c1) + 
+                     (b2*(2*np.pi*c/w)**2)/((2*np.pi*c/w)**2 - c2) + 
+                     (b3*(2*np.pi*c/w)**2)/((2*np.pi*c/w)**2 - c3)))/c
+    
+    k_deriv = np.sqrt(1 +((4*b1*(c**2)*(np.pi**2))/(-c1*(w0**2) + (2*c*np.pi)**2)) + 
+                      ((4*b2*(c**2)*(np.pi**2))/(-c2*(w0**2) + (2*c*np.pi)**2)) + 
+                      ((4*b3*(c**2)*(np.pi**2))/(-c3*(w0**2) + (2*c*np.pi)**2)))/c + w0*(
+                          (32*b1*(c*np.pi)**4)/((w0**5)*((-c1 + ((2*c*np.pi)**2)/(w0**2))**2)) +
+                          (32*b2*(c*np.pi)**4)/((w0**5)*((-c2 + ((2*c*np.pi)**2)/(w0**2))**2)) +
+                          (32*b3*(c*np.pi)**4)/((w0**5)*((-c3 + ((2*c*np.pi)**2)/(w0**2))**2)) -
+                          (8*b1*(c*np.pi)**2)/((w0**3)*(-c1 + ((2*c*np.pi)**2)/(w0**2))) -
+                          (8*b2*(c*np.pi)**2)/((w0**3)*(-c2 + ((2*c*np.pi)**2)/(w0**2))) -
+                          (8*b3*(c*np.pi)**2)/((w0**3)*(-c3 + ((2*c*np.pi)**2)/(w0**2))))/(
+                              2*c*np.sqrt(1 + (b1*(2*np.pi*c/w0)**2)/((2*np.pi*c/w0)**2 - c1) + 
+                                          (b2*(2*np.pi*c/w0)**2)/((2*np.pi*c/w0)**2 - c2) + 
+                                          (b3*(2*np.pi*c/w0)**2)/((2*np.pi*c/w0)**2 - c3)))
+
+    return k_w - k_deriv*(w - w0)
+
+
 def run_cpi_for_L(chirp_type, L, Ec, Ea, ws, w0, taus, integration_range, output_dir):
     
-    epsilon = 0.0223238 * L
-    Esamp_w = Esampler(Ec, Ea, ws, w0, epsilon)
+    phi = BK7_epsilon(ws, w0)*L
+    phi = np.nan_to_num(phi, nan=1e-6, posinf=1e-6, neginf=1e-6)
+
+    Esamp_w = Esampler(Ec, Ea, ws, w0, phi)
     Esamp_t = np.conj(ifft(np.conj(Esamp_w), norm="ortho"))
 
     SFG_data = []
@@ -84,7 +115,7 @@ t_0 = 200000
 Npts = 2**19
 ts = np.linspace(0, 400000, Npts)
 dt = ts[1] - ts[0]
-taus = np.arange(-25, 25.5, 0.5)
+taus = np.arange(-50, 50.5, 0.5)
 
 if __name__ == "__main__":
     start = time.time()
@@ -99,7 +130,7 @@ if __name__ == "__main__":
     Npts = 2**19
     ts = np.linspace(0, 400000, Npts)
     dt = ts[1] - ts[0]
-    taus = np.arange(-25, 25.5, 0.5)
+    taus = np.arange(-50, 50.5, 0.5)
 
     # Time-domain field
     Es = np.exp((-2 * np.log(2) * (ts - t_0) ** 2) / fwhm**2) * np.exp(-1j * w_0 * ts)
@@ -288,9 +319,9 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.show();
         '''
-    os.makedirs("test_results/linear", exist_ok=True)
-    os.makedirs("test_results/erf", exist_ok=True)
-    os.makedirs("test_results/super_erf", exist_ok=True)
+    os.makedirs("updated_phi_results/linear", exist_ok=True)
+    os.makedirs("updated_phi_results/erf", exist_ok=True)
+    os.makedirs("updated_phi_results/super_erf", exist_ok=True)
 
     # L values
     Lvals = np.arange(0, 64001, 800)
@@ -302,19 +333,16 @@ if __name__ == "__main__":
 
     ws[0] = 1e-6
     
-    for L in Lvals2:
+    for L in Lvals:
 
-        tasks.append(("linear", L, Ec_lin, Ea_lin, ws, w_0, taus, 1, "C:/University Things/Work Summer 2025/test_results/linear"))
-        tasks.append(("erf", L, Ec_erf, Ea_erf, ws, w_0, taus, 1, "C:/University Things/Work Summer 2025/test_results/erf"))
-        tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, w_0, taus, 1, "C:/University Things/Work Summer 2025/test_results/super_erf"))
+        tasks.append(("linear", L, Ec_lin, Ea_lin, ws, w_0, taus, 1, "./updated_phi_results/linear"))
+        tasks.append(("erf", L, Ec_erf, Ea_erf, ws, w_0, taus, 1, "./updated_phi_results/erf"))
+        tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, w_0, taus, 1, "./updated_phi_results/super_erf"))
 
     # Run in parallel using 4 workers
     print("⚙️ Launching parallel CPI...")
     start = time.time()
-    '''
-    ctx = get_context("spawn")
-    with ctx.Pool(processes=mp.cpu_count()) as pool:
-        pool.map(run_cpi_for_L, tasks)'''
+
     with mp.Pool(mp.cpu_count()) as pool:
         pool.starmap(run_cpi_for_L, tasks)
 
