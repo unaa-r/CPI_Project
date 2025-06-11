@@ -101,7 +101,7 @@ if __name__ == "__main__":
     start = time.time()
     ctx = get_context("spawn")  # safe for Windows/macOS
 
-    '''
+    
     # Constants
     fwhm = 10
     sigma_s = 1.12 * fwhm
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     ts = np.linspace(0, 400000, Npts)
     dt = ts[1] - ts[0]
     taus = np.arange(-50, 50.5, 0.5)
-    '''
+    
 
     # Time-domain field
     Es = np.exp((-2 * np.log(2) * (ts - t_0) ** 2) / fwhm**2) * np.exp(-1j * w_0 * ts)
