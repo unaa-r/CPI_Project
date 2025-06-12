@@ -145,7 +145,7 @@ if __name__ == "__main__":
     Ea_superf = chirper(Ews, superf_chirp(-C, ws, w_0, sigma_s))
 
     ###This is what you can modify###
-    taus = np.arange(-10, 10.5, 0.5)
+    taus = np.arange(-100, 100.5, 0.5)
     folder_name = "freshwater_dispersion"
     dispersion_type = "freshwater" #choose from seawater, freshwater, or BK7 glass for now (default BK7)
     integration_range = 1 #units of nm, default 1 nm
