@@ -105,12 +105,12 @@ def water_epsilon(w, w0, T=20, water='fresh'):
         return 0
 
     k_w = w*(a*T**2 + b*(2*1000*np.pi*c/w)**2 + c1*T + d*2*1000*np.pi*c/w + e)/c
-    k_deriv = a - b/(w**2) + c1 + e
+    k_deriv = (a*T**2 - b*(2*1000*np.pi*c/w)**2 + c1*T + e)/c
 
     return k_w - k_deriv*(w - w0)
 
 
-def run_cpi_for_L(chirp_type, L, Ec, Ea, ws, w0, taus, epsilon, integration_range, output_dir):
+def run_cpi_for_L(chirp_type, L, Ec, Ea, ws, taus, epsilon, integration_range, output_dir):
   
     Esamp_w = Esampler(Ec, Ea, epsilon*L)
     Esamp_t = np.conj(ifft(np.conj(Esamp_w), norm="ortho"))
@@ -221,9 +221,13 @@ if __name__ == "__main__":
     epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)
 
     for L in Lvals:
-        tasks.append(("linear", L, Ec_lin, Ea_lin, ws, w_0, taus, epsilon, integration_range, f"./{folder_name}/linear"))
-        tasks.append(("erf", L, Ec_erf, Ea_erf, ws, w_0, taus, epsilon, integration_range, f"./{folder_name}/erf"))
-        tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, w_0, taus, epsilon, integration_range, f"./{folder_name}/super_erf"))
+
+        if not (os.path.exists(f"./{folder_name}/linear/linear_L{L}.txt")):
+            tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./{folder_name}/linear"))
+        if not (os.path.exists(f"./{folder_name}/erf/erf_L{L}.txt")):
+            tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./{folder_name}/erf"))
+        if not (os.path.exists(f"./{folder_name}/super_erf/super_erf_L{L}.txt")):
+            tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./{folder_name}/super_erf"))
 
     # Run in parallel using 4 workers
     print("⚙️ Launching parallel CPI...")
