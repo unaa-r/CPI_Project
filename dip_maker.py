@@ -18,14 +18,50 @@ def Ereffer(Ec, Ea, w, tau):
 def Esampler(Ec, Ea, phi):
     return (Ec - Ea) * np.exp(1j * phi)
 
-def BK7_epsilon(w, w0):
+# from https://www.coherent.com/resources/tech-notes/lasers/PropagationDispersionMeasurement_of_sub_10fsPulses_08_29_18.pdf
+#Choose from "BK7", "Fused Silica", "Sapphire", "CaF2", or "SF10"
+def glass_type_epsilon(w, w0, material="BK7"):
+    
     c = 0.2998; #(*um/fs*)
-    b1 = 1.03961212; #(*for BK7 glass*)
-    b2 = 0.231792344
-    b3 = 1.01046945
-    c1 = 6.00069867e-3 #(*um^2*)
-    c2 = 2.00179144e-2
-    c3 = 1.03560653e2
+    match material:
+        case "BK7":
+            b1 = 1.03961212 #(*for BK7 glass*)
+            b2 = 0.231792344
+            b3 = 1.01046945
+            c1 = 6.00069867e-3 #(*um^2*)
+            c2 = 2.00179144e-2
+            c3 = 1.03560653e2
+        case "Fused Silica":
+            b1 =  0.6961663
+            b2 = 0.4079426
+            b3 = 0.8974794
+            c1 = 0.00467914826
+            c2 = 0.0135120631
+            c3 = 97.9340025
+        case "Sapphire":
+            b1 = 1.43134930
+            b2 = 0.650547130
+            b3 = 5.34140210
+            c1 = 0.00527992610
+            c2 = 0.0142382647
+            c3 = 325.017834
+        case "CaF2":
+            b1 = 0.5675888
+            b2 = 0.4710914
+            b3 = 3.8484723
+            c1 = 0.00252642999
+            c2 = 0.0100783328
+            c3 = 1200.555973
+        case "SF10":
+            b1 = 1.62153902
+            b2 = 0.256287842
+            b3 = 1.64447552
+            c1 = 0.0122241457
+            c2 = 0.0595736775
+            c3 = 103.560653
+        case _:
+            print("Error! invalid water type")
+            return 0
 
     k_w = w*(np.sqrt(1 + (b1*(2*np.pi*c/w)**2)/((2*np.pi*c/w)**2 - c1) + 
                      (b2*(2*np.pi*c/w)**2)/((2*np.pi*c/w)**2 - c2) + 
@@ -45,6 +81,7 @@ def BK7_epsilon(w, w0):
                                           (b3*(2*np.pi*c/w0)**2)/((2*np.pi*c/w0)**2 - c3)))
 
     return k_w - k_deriv*(w - w0)
+
 
 #from https://research.engr.oregonstate.edu/parrish/index-refraction-seawater-and-freshwater-function-wavelength-and-temperature#:~:text=Christopher%20Parrish%20(2020),400%2D700%20=%20visible%20spectrum)
 #T must be between 0 and 30
@@ -145,11 +182,11 @@ if __name__ == "__main__":
     Ea_superf = chirper(Ews, superf_chirp(-C, ws, w_0, sigma_s))
 
     ###This is what you can modify###
-    taus = np.arange(-100, 100.5, 0.5)
+    taus = np.arange(-10, 10.5, 0.5)
     folder_name = "freshwater_dispersion"
     dispersion_type = "freshwater" #choose from seawater, freshwater, or BK7 glass for now (default BK7)
     integration_range = 1 #units of nm, default 1 nm
-    Lvals = np.arange(0, 64001, 800) #L values (thickness) in um, default use: np.arange(0, 64001, 800)
+    Lvals = [0,800] #L values (thickness) in um, default use: np.arange(0, 64001, 800)
     #################################
 
     os.makedirs("{folder_name}/linear", exist_ok=True)
@@ -163,18 +200,25 @@ if __name__ == "__main__":
 
     ws[0] = 1e-6
 
-    if(dispersion_type == "freshwater"):
-        epsilon = water_epsilon(ws, w_0, water = 'fresh')
-        epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)
-    elif(dispersion_type == "seawater"):
-        epsilon = water_epsilon(ws, w_0, water = 'sea')
-        epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)
-    elif(dispersion_type == "BK7"):
-        epsilon = BK7_epsilon(ws, w_0)
-        epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)
-    else:
-        epsilon = BK7_epsilon(ws, w_0)
-        epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)        
+    match dispersion_type:
+        case "freshwater":
+            epsilon = water_epsilon(ws, w_0, water = 'fresh')
+        case "seatwater":    
+            epsilon = water_epsilon(ws, w_0, water = 'sea')
+        case "BK7":
+            epsilon = glass_type_epsilon(ws, w_0)
+        case "Fused Silica":
+            epsilon = glass_type_epsilon(ws, w_0, "Fused Silica")
+        case "Sapphire":
+            epsilon = glass_type_epsilon(ws, w_0, "Sapphire")
+        case "CaF2":
+            epsilon = glass_type_epsilon(ws, w_0, "CaF2")
+        case "SF10":
+            epsilon = glass_type_epsilon(ws, w_0, "SF10")
+        case _:
+            epsilon = glass_type_epsilon(ws, w_0)        
+
+    epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)
 
     for L in Lvals:
         tasks.append(("linear", L, Ec_lin, Ea_lin, ws, w_0, taus, epsilon, integration_range, "./{folder_name}/linear"))
