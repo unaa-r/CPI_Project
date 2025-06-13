@@ -186,7 +186,7 @@ if __name__ == "__main__":
     folder_name = "freshwater_dispersion"
     dispersion_type = "freshwater" #choose from seawater, freshwater, or BK7 glass for now (default BK7)
     integration_range = 1 #units of nm, default 1 nm
-    Lvals = [0,800] #L values (thickness) in um, default use: np.arange(0, 64001, 800)
+    Lvals = np.arange(0, 64001, 800) #L values (thickness) in um, default use: np.arange(0, 64001, 800)
     #################################
 
     os.makedirs(f"{folder_name}/linear", exist_ok=True)
