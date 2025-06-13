@@ -3,11 +3,6 @@ from scipy.fft import fft, ifft
 from scipy.special import erf
 from multiprocessing import get_context
 import time
-from matplotlib import gridspec
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-from scipy.optimize import minimize 
-import math
 import os
 import multiprocessing as mp
 
@@ -182,11 +177,14 @@ if __name__ == "__main__":
     Ea_superf = chirper(Ews, superf_chirp(-C, ws, w_0, sigma_s))
 
     ###This is what you can modify###
+
     taus = np.arange(-100, 100.5, 0.5)
     folder_name = "freshwater_dispersion"
     dispersion_type = "freshwater" #choose from seawater, freshwater, or BK7 glass for now (default BK7)
     integration_range = 1 #units of nm, default 1 nm
     Lvals = np.arange(0, 64001, 800) #L values (thickness) in um, default use: np.arange(0, 64001, 800)
+    overwrite = True #choose to overwrite files in folder or not; false is good if run times out before you check all cases
+    
     #################################
 
     os.makedirs(f"{folder_name}/linear", exist_ok=True)
@@ -222,13 +220,18 @@ if __name__ == "__main__":
 
     for L in Lvals:
 
-        if not (os.path.exists(f"./{folder_name}/linear/linear_L{L}.txt")):
+        if not overwrite:
+            if not (os.path.exists(f"./{folder_name}/linear/linear_L{L}.txt")):
+                tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./{folder_name}/linear"))
+            if not (os.path.exists(f"./{folder_name}/erf/erf_L{L}.txt")):
+                tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./{folder_name}/erf"))
+            if not (os.path.exists(f"./{folder_name}/super_erf/super_erf_L{L}.txt")):
+                tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./{folder_name}/super_erf"))
+        else:
             tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./{folder_name}/linear"))
-        if not (os.path.exists(f"./{folder_name}/erf/erf_L{L}.txt")):
             tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./{folder_name}/erf"))
-        if not (os.path.exists(f"./{folder_name}/super_erf/super_erf_L{L}.txt")):
             tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./{folder_name}/super_erf"))
-
+        
     # Run in parallel using 4 workers
     print("⚙️ Launching parallel CPI...")
     start = time.time()
