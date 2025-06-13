@@ -7,4 +7,4 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mem=128G
 
-srun python -u dip_maker.py
+srun python -u dip_maker.py "$@"

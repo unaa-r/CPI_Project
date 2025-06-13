@@ -5,6 +5,7 @@ from multiprocessing import get_context
 import time
 import os
 import multiprocessing as mp
+import argparse
 
 def Ereffer(Ec, Ea, w, tau):
     return (Ec + Ea) * np.exp(1j * w * tau)
@@ -161,6 +162,17 @@ if __name__ == "__main__":
     start = time.time()
     ctx = get_context("spawn")  # safe for Windows/macOS
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--folder_name", type=str, required=True)
+    parser.add_argument("--dispersion_type", type=str, default="BK7")
+    parser.add_argument("--integration_range", type=float, default=1)
+    parser.add_argument("--tau_range", type=int, default=100)
+    parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--max_L", type=int, default=64001)
+    parser.add_argument("--L_stepsize", type=int, default=800)
+
+    args = parser.parse_args()
+
     # Time-domain field
     Es = np.exp((-2 * np.log(2) * (ts - t_0) ** 2) / fwhm**2) * np.exp(-1j * w_0 * ts)
     Ews = np.conj(fft(np.conj(Es), norm='ortho'))
@@ -178,13 +190,13 @@ if __name__ == "__main__":
 
     ###This is what you can modify###
 
-    taus = np.arange(-100, 100.5, 0.5)
-    folder_name = "freshwater_dispersion"
-    dispersion_type = "freshwater" #choose from seawater, freshwater, or BK7 glass for now (default BK7)
-    integration_range = 1 #units of nm, default 1 nm
-    Lvals = np.arange(0, 64001, 800) #L values (thickness) in um, default use: np.arange(0, 64001, 800)
-    overwrite = True #choose to overwrite files in folder or not; false is good if run times out before you check all cases
-    
+    taus = np.arange(-args.tau_range, args.tau_range + .5, 0.5)
+    folder_name = args.folder_name
+    dispersion_type = args.dispersion_type #choose from seawater, freshwater, or BK7 glass for now (default BK7)
+    integration_range = args.integration_range #units of nm, default 1 nm
+    Lvals = np.arange(0, args.max_L, args.L_stepsize) #L values (thickness) in um, default use: np.arange(0, 64001, 800)
+    overwrite = args.overwrite #choose to overwrite files in folder or not; false is good if run times out before you check all cases
+
     #################################
 
     os.makedirs(f"{folder_name}/linear", exist_ok=True)
