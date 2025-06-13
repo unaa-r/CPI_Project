@@ -189,9 +189,9 @@ if __name__ == "__main__":
     Lvals = [0,800] #L values (thickness) in um, default use: np.arange(0, 64001, 800)
     #################################
 
-    os.makedirs("{folder_name}/linear", exist_ok=True)
-    os.makedirs("{folder_name}/erf", exist_ok=True)
-    os.makedirs("{folder_name}/super_erf", exist_ok=True)
+    os.makedirs(f"{folder_name}/linear", exist_ok=True)
+    os.makedirs(f"{folder_name}/erf", exist_ok=True)
+    os.makedirs(f"{folder_name}/super_erf", exist_ok=True)
 
     print(f"📊 Sweeping {len(Lvals)} dispersion values")
 
@@ -221,9 +221,9 @@ if __name__ == "__main__":
     epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)
 
     for L in Lvals:
-        tasks.append(("linear", L, Ec_lin, Ea_lin, ws, w_0, taus, epsilon, integration_range, "./{folder_name}/linear"))
-        tasks.append(("erf", L, Ec_erf, Ea_erf, ws, w_0, taus, epsilon, integration_range, "./{folder_name}/erf"))
-        tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, w_0, taus, epsilon, integration_range, "./{folder_name}/super_erf"))
+        tasks.append(("linear", L, Ec_lin, Ea_lin, ws, w_0, taus, epsilon, integration_range, f"./{folder_name}/linear"))
+        tasks.append(("erf", L, Ec_erf, Ea_erf, ws, w_0, taus, epsilon, integration_range, f"./{folder_name}/erf"))
+        tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, w_0, taus, epsilon, integration_range, f"./{folder_name}/super_erf"))
 
     # Run in parallel using 4 workers
     print("⚙️ Launching parallel CPI...")
