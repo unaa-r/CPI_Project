@@ -213,7 +213,7 @@ if __name__ == "__main__":
     match dispersion_type:
         case "freshwater":
             epsilon = water_epsilon(ws, w_0, water = 'fresh')
-        case "seatwater":    
+        case "seawater":    
             epsilon = water_epsilon(ws, w_0, water = 'sea')
         case "BK7":
             epsilon = glass_type_epsilon(ws, w_0)
