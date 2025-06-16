@@ -96,6 +96,9 @@ def water_epsilon(w, w0, T=20, S=0):
     n8 = -4382
     n9 = 1.1455e6
 
+    w = np.where(w < 1e13, 1e13, w)
+
+
     k_w = w*(n0 + (n1 + n2*T + n3*T**2)*S + n4*T**2 +(n5 + n6*S + n7*T)/(2*1000*np.pi*c/w) + 
              n8/(2*1000*np.pi*c/w)**2 + n9/(2*1000*np.pi*c/w)**3)/c
     k_deriv = ((n1 + n2*T + n3*T**2)*S + n4*T**2 - n8/(2*1000*np.pi*c/w0)**2 - 2*n9/(2*1000*np.pi*c/w0)**3)/c
