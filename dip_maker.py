@@ -79,29 +79,26 @@ def glass_type_epsilon(w, w0, material="BK7"):
     return k_w - k_deriv*(w - w0)
 
 
-#from https://research.engr.oregonstate.edu/parrish/index-refraction-seawater-and-freshwater-function-wavelength-and-temperature#:~:text=Christopher%20Parrish%20(2020),400%2D700%20=%20visible%20spectrum)
+#from https://opg.optica.org/ao/fulltext.cfm?uri=ao-36-16-3785
 #T must be between 0 and 30
-#can pick from 'fresh' (salinity = 0), or 'sea' (salinity = 35%)
-def water_epsilon(w, w0, T=20, water='fresh'):
+#S is salinity, in parts per thousand (35 is seawater)
+def water_epsilon(w, w0, T=20, S=0):
     c = 0.2998; #(*um/fs*)
-    if(water == 'fresh'):
-        a = -1.97812e-6
-        b = 1.03223e-7
-        c1 = -8.58125e-6
-        d = -1.54834e-4
-        e = 1.38919
-    elif(water == 'sea'):
-        a = -1.50156e-6
-        b = 1.07085e-7
-        c1 = -4.27594e-5
-        d = -1.60476e-4
-        e = 1.39807
-    else:
-        print("Error! invalid water type")
-        return 0
+    
+    n0 = 1.31405
+    n1 = 1.779e-4
+    n2 = -1.05e-6
+    n3 = 1.6e-8
+    n4 = -2.02e-6
+    n5 = 15.868
+    n6 = 0.01155
+    n7 = -0.00423
+    n8 = -4382
+    n9 = 1.1455e6
 
-    k_w = w*(a*T**2 + b*(2*1000*np.pi*c/w)**2 + c1*T + d*2*1000*np.pi*c/w + e)/c
-    k_deriv = (a*T**2 - b*(2*1000*np.pi*c/w)**2 + c1*T + e)/c
+    k_w = w*(n0 + (n1 + n2*T + n3*T**2)*S + n4*T**2 +(n5 + n6*S + n7*T)/(2*1000*np.pi*c/w) + 
+             n8/(2*1000*np.pi*c/w)**2 + n9/(2*1000*np.pi*c/w)**3)/c
+    k_deriv = ((n1 + n2*T + n3*T**2)*S + n4*T**2 - n8/(2*1000*np.pi*c/w)**2 - 2*n9/(2*1000*np.pi*c/w)**3)/c
 
     return k_w - k_deriv*(w - w0)
 
@@ -212,9 +209,9 @@ if __name__ == "__main__":
 
     match dispersion_type:
         case "freshwater":
-            epsilon = water_epsilon(ws, w_0, water = 'fresh')
+            epsilon = water_epsilon(ws, w_0, S = 0)
         case "seawater":    
-            epsilon = water_epsilon(ws, w_0, water = 'sea')
+            epsilon = water_epsilon(ws, w_0, S = 35)
         case "BK7":
             epsilon = glass_type_epsilon(ws, w_0)
         case "Fused Silica":
