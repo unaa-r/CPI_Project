@@ -162,7 +162,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder_name", type=str, required=True)
     parser.add_argument("--dispersion_type", type=str, default="BK7")
-    parser.add_argument("--integration_range", type=float, default=1)
+    parser.add_argument("--integration_range", type=int, default=1)
     parser.add_argument("--tau_range", type=int, default=100)
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--max_L", type=int, default=64001)
@@ -226,6 +226,8 @@ if __name__ == "__main__":
             epsilon = glass_type_epsilon(ws, w_0)        
 
     epsilon = np.nan_to_num(epsilon, nan=1e-6, posinf=1e-6, neginf=1e-6)
+    epsilon = np.clip(epsilon, -1e6, 1e6)  # or tighter limits
+
 
     for L in Lvals:
 
