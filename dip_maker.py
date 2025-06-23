@@ -96,14 +96,17 @@ def water_epsilon(w, w0, T=20, S=0):
     n8 = -4382
     n9 = 1.1455e6
 
-    w = np.where(w < 1e13, 1e13, w)
+    lambdas = (2 * np.pi * c / w) * 1e3
 
+    lambda_0 = (2*1000*np.pi*c/w0)
 
-    k_w = w*(n0 + (n1 + n2*T + n3*T**2)*S + n4*T**2 +(n5 + n6*S + n7*T)/(2*1000*np.pi*c/w) + 
-             n8/(2*1000*np.pi*c/w)**2 + n9/(2*1000*np.pi*c/w)**3)/c
-    k_deriv = ((n1 + n2*T + n3*T**2)*S + n4*T**2 - n8/(2*1000*np.pi*c/w0)**2 - 2*n9/(2*1000*np.pi*c/w0)**3)/c
+    k_w = w*(n0 + (n1 + n2*T + n3*T**2)*S + n4*T**2 +(n5 + n6*S + n7*T)/lambdas + 
+             n8/lambdas**2 + n9/lambdas**3)/c
+    k_deriv = (n0 + (n1 + n2*T + n3*T**2)*S + n4*T**2 +2*(n5 + n6*S + n7*T)/lambda_0 + 3*n8/lambda_0**2 + 4*n9/lambda_0**3)/c
+    
+    phi_water= k_w - k_deriv*(w - w0)
 
-    return k_w - k_deriv*(w - w0)
+    return phi_water
 
 
 def run_cpi_for_L(chirp_type, L, Ec, Ea, ws, taus, epsilon, integration_range, output_dir):
