@@ -202,9 +202,23 @@ if __name__ == "__main__":
 
     #################################
 
-    os.makedirs(f"{folder_name}/linear", exist_ok=True)
-    os.makedirs(f"{folder_name}/erf", exist_ok=True)
-    os.makedirs(f"{folder_name}/super_erf", exist_ok=True)
+    os.makedirs(f"results/{folder_name}/linear", exist_ok=True)
+    os.makedirs(f"results/{folder_name}/erf", exist_ok=True)
+    os.makedirs(f"results/{folder_name}/super_erf", exist_ok=True)
+
+    with open(f"results/{folder_name}/plotting_params.txt", 'w') as f:
+        f.write(f"{dispersion_type}\n")
+        f.write(f"{args.tau_range}\n")
+        f.write(f"{args.max_L}\n")
+        f.write(f"{args.stepsize}\n")
+
+    with open(f"results/{folder_name}/run_info.txt", 'w') as f:
+        f.write(f"Dispersion type: {dispersion_type}\n")
+        f.write(f"Integration range: {integration_range} nm\n")
+        f.write(f"Tau range: {args.tau_range} fs\n")
+        f.write(f"Maximum L value (exclusive): {args.max_L} um\n")
+        f.write(f"L stepsize: {args.stepsize} um\n")
+
 
     print(f"📊 Sweeping {len(Lvals)} dispersion values")
 
@@ -238,16 +252,16 @@ if __name__ == "__main__":
     for L in Lvals:
 
         if not overwrite:
-            if not (os.path.exists(f"./{folder_name}/linear/linear_L{L}.txt")):
-                tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./{folder_name}/linear"))
-            if not (os.path.exists(f"./{folder_name}/erf/erf_L{L}.txt")):
-                tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./{folder_name}/erf"))
-            if not (os.path.exists(f"./{folder_name}/super_erf/super_erf_L{L}.txt")):
-                tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./{folder_name}/super_erf"))
+            if not (os.path.exists(f"./results/{folder_name}/linear/linear_L{L}.txt")):
+                tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./results/{folder_name}/linear"))
+            if not (os.path.exists(f"./results/{folder_name}/erf/erf_L{L}.txt")):
+                tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./results/{folder_name}/erf"))
+            if not (os.path.exists(f"./results/{folder_name}/super_erf/super_erf_L{L}.txt")):
+                tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./results/{folder_name}/super_erf"))
         else:
-            tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./{folder_name}/linear"))
-            tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./{folder_name}/erf"))
-            tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./{folder_name}/super_erf"))
+            tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./results/{folder_name}/linear"))
+            tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./results/{folder_name}/erf"))
+            tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./results{folder_name}/super_erf"))
         
     # Run in parallel using 4 workers
     print("⚙️ Launching parallel CPI...")
