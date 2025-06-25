@@ -1,0 +1,5 @@
+Dispersion type: Fused Silica
+Integration range: 1 nm
+Tau range: 100 fs
+Maximum L value (exclusive): 64001 um
+L stepsize: 800 um
