@@ -210,14 +210,14 @@ if __name__ == "__main__":
         f.write(f"{dispersion_type}\n")
         f.write(f"{args.tau_range}\n")
         f.write(f"{args.max_L}\n")
-        f.write(f"{args.stepsize}\n")
+        f.write(f"{args.L_stepsize}\n")
 
     with open(f"results/{folder_name}/run_info.txt", 'w') as f:
         f.write(f"Dispersion type: {dispersion_type}\n")
         f.write(f"Integration range: {integration_range} nm\n")
         f.write(f"Tau range: {args.tau_range} fs\n")
         f.write(f"Maximum L value (exclusive): {args.max_L} um\n")
-        f.write(f"L stepsize: {args.stepsize} um\n")
+        f.write(f"L stepsize: {args.L_stepsize} um\n")
 
 
     print(f"📊 Sweeping {len(Lvals)} dispersion values")
