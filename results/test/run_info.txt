@@ -1,0 +1,5 @@
+Dispersion type: BK7
+Integration range: 1 nm
+Tau range: 10 fs
+Maximum L value (exclusive): 100 um
+L stepsize: 10 um

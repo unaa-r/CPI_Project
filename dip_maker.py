@@ -6,6 +6,7 @@ import time
 import os
 import multiprocessing as mp
 import argparse
+from tqdm import tqdm
 
 def Ereffer(Ec, Ea, w, tau):
     return (Ec + Ea) * np.exp(1j * w * tau)
@@ -56,7 +57,7 @@ def glass_type_epsilon(w, w0, material="BK7"):
             c2 = 0.0595736775
             c3 = 103.560653
         case _:
-            print("Error! invalid water type")
+            print("Error! invalid glass type")
             return 0
 
     k_w = w*(np.sqrt(1 + (b1*(2*np.pi*c/w)**2)/((2*np.pi*c/w)**2 - c1) + 
@@ -132,8 +133,10 @@ def run_cpi_for_L(chirp_type, L, Ec, Ea, ws, taus, epsilon, integration_range, o
    
     out_path = os.path.join(output_dir, f"{chirp_type}_L{L}.txt")
     np.savetxt(out_path, signal_vs_tau, fmt="%.15f")
-    print(f"✅ {chirp_type} L={L} saved.")
+    #print(f"✅ {chirp_type} L={L} saved.")
 
+def run_cpi_unpack(args):
+    return run_cpi_for_L(*args)
 
 def lin_chirp(A, w, w_0):
     return A * ((w - w_0) ** 2)
@@ -170,7 +173,7 @@ if __name__ == "__main__":
     parser.add_argument("--dispersion_type", type=str, default="BK7")
     parser.add_argument("--integration_range", type=int, default=1)
     parser.add_argument("--tau_range", type=int, default=100)
-    parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--no_overwrite", action="store_true")
     parser.add_argument("--max_L", type=int, default=64001)
     parser.add_argument("--L_stepsize", type=int, default=800)
 
@@ -198,7 +201,7 @@ if __name__ == "__main__":
     dispersion_type = args.dispersion_type #choose from seawater, freshwater, or BK7 glass for now (default BK7)
     integration_range = args.integration_range #units of nm, default 1 nm
     Lvals = np.arange(0, args.max_L, args.L_stepsize) #L values (thickness) in um, default use: np.arange(0, 64001, 800)
-    overwrite = args.overwrite #choose to overwrite files in folder or not; false is good if run times out before you check all cases
+    no_overwrite = args.no_overwrite #choose to to not files in folder; good if run times out before you check all cases
 
     #################################
 
@@ -251,7 +254,7 @@ if __name__ == "__main__":
 
     for L in Lvals:
 
-        if not overwrite:
+        if no_overwrite:
             if not (os.path.exists(f"./results/{folder_name}/linear/linear_L{L}.txt")):
                 tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./results/{folder_name}/linear"))
             if not (os.path.exists(f"./results/{folder_name}/erf/erf_L{L}.txt")):
@@ -261,13 +264,20 @@ if __name__ == "__main__":
         else:
             tasks.append(("linear", L, Ec_lin, Ea_lin, ws, taus, epsilon, integration_range, f"./results/{folder_name}/linear"))
             tasks.append(("erf", L, Ec_erf, Ea_erf, ws, taus, epsilon, integration_range, f"./results/{folder_name}/erf"))
-            tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./results{folder_name}/super_erf"))
+            tasks.append(("super_erf", L, Ec_superf, Ea_superf, ws, taus, epsilon, integration_range, f"./results/{folder_name}/super_erf"))
         
     # Run in parallel using 4 workers
     print("⚙️ Launching parallel CPI...")
     start = time.time()
 
+    '''
+    use this if you dont want progress tracking
     with mp.Pool(mp.cpu_count()) as pool:
         pool.starmap(run_cpi_for_L, tasks)
+    '''
+        
+    with mp.Pool(mp.cpu_count()) as pool:
+        for _ in tqdm(pool.imap_unordered(run_cpi_unpack, tasks), total=len(tasks)):
+            pass
 
     print(f"\n✅ All CPI runs complete in {time.time() - start:.2f} s")
