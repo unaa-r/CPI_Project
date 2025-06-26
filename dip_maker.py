@@ -7,6 +7,7 @@ import os
 import multiprocessing as mp
 import argparse
 from tqdm import tqdm
+import shutil
 
 def Ereffer(Ec, Ea, w, tau):
     return (Ec + Ea) * np.exp(1j * w * tau)
@@ -205,10 +206,21 @@ if __name__ == "__main__":
 
     #################################
 
+    if not no_overwrite:
+        if os.path.exists(f"results/{folder_name}/linear"):
+            shutil.rmtree(f"results/{folder_name}/linear")
+        
+        if os.path.exists(f"results/{folder_name}/erf"):
+            shutil.rmtree(f"results/{folder_name}/erf")
+        
+        if os.path.exists(f"results/{folder_name}/super_erf"):
+            shutil.rmtree(f"results/{folder_name}/super_erf")
+
     os.makedirs(f"results/{folder_name}/linear", exist_ok=True)
     os.makedirs(f"results/{folder_name}/erf", exist_ok=True)
     os.makedirs(f"results/{folder_name}/super_erf", exist_ok=True)
 
+  
     with open(f"results/{folder_name}/plotting_params.txt", 'w') as f:
         f.write(f"{dispersion_type}\n")
         f.write(f"{args.tau_range}\n")
