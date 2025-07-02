@@ -82,6 +82,7 @@ def glass_type_epsilon(w, w0, material="BK7"):
 
 
 #from https://opg.optica.org/ao/fulltext.cfm?uri=ao-36-16-3785
+#https://opg.optica.org/ao/fulltext.cfm?uri=ao-34-18-3477&id=45728
 #T must be between 0 and 30
 #S is salinity, in parts per thousand (35 is seawater)
 def water_epsilon(w, w0, T=20, S=0):
@@ -106,6 +107,7 @@ def water_epsilon(w, w0, T=20, S=0):
              n8/lambdas**2 + n9/lambdas**3)/c
     k_deriv = (n0 + (n1 + n2*T + n3*T**2)*S + n4*T**2 +2*(n5 + n6*S + n7*T)/lambda_0 + 3*n8/lambda_0**2 + 4*n9/lambda_0**3)/c
     
+
     phi_water= k_w - k_deriv*(w - w0)
 
     return phi_water
